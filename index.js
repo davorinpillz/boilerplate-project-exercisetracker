@@ -15,14 +15,21 @@ app.get('/', (req, res) => {
 const Schema = mongoose.Schema
 const userSchema = new Schema({
   username: String,
-  exercises: Array
+  exercises: [{
+    type: Schema.Types.ObjectId,
+    ref: "Exercise"
+  }]
 })
 const User = mongoose.model("User", userSchema)
 const exerciseSchema = new Schema({
   username: String,
   description: String,
   duration: Number,
-  date: String
+  date: String,
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: "User"
+  }
 })
 const Exercise = mongoose.model("Exercise", exerciseSchema)
 const logSchema = new Schema({
@@ -52,29 +59,34 @@ app.post('/api/users/:_id/exercises', function(req,res) {
       let newExercise = new Exercise({
         description: req.body.description, 
         duration: req.body.duration, 
-        date: date 
+        date: date,
+        user: req.params._id
         })
       newExercise.save()
-      User.findOneAndUpdate(
-        {_id: req.params._id}, 
-        {"$push": {exercises: newExercise}}, 
-        {new: true}
-      ).select('-__v').then((r) => {
-        res.json(r)})
+      async function populateUser() {
+        await User.find({_id: req.params._id}).populate("exercises").then((r) => {
+          res.json(r)
+        })
+        }
+      populateUser()
     }
   else {
     let newExercise = new Exercise({
       description: req.body.description, 
       duration: req.body.duration, 
-      date: new Date().toUTCString()
+      date: new Date().toUTCString(),
+      user: req.params._id
     })
     newExercise.save()
-    User.findOneAndUpdate(
-      {_id: req.params._id}, 
-      {"$push": {exercises: newExercise}}, 
-      {new: true}
-    ).select('-__v').then((r) => {
-      res.json(r)})
+    console.log(newExercise)
+    async function populateUser() {
+      await User.find({_id: req.params._id}).populate("exercises").exec().then((r) => {
+        res.json(r)
+        console.log(r)
+
+      })
+      }
+    populateUser()
   }
 })
 const listener = app.listen(process.env.PORT || 3000, () => {
