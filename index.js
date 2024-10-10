@@ -15,21 +15,14 @@ app.get('/', (req, res) => {
 const Schema = mongoose.Schema
 const userSchema = new Schema({
   username: String,
-  exercises: [{
-    type: Schema.Types.ObjectId,
-    ref: "Exercise"
-  }]
+  exercises: Array
 })
 const User = mongoose.model("User", userSchema)
 const exerciseSchema = new Schema({
   username: String,
   description: String,
   duration: Number,
-  date: String,
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "User"
-  }
+  date: String
 })
 const Exercise = mongoose.model("Exercise", exerciseSchema)
 const logSchema = new Schema({
@@ -53,34 +46,36 @@ app.get('/api/users',  function(req,res) {
   })
 })
 app.post('/api/users/:_id/exercises', function(req,res) {
-  console.log(req.params._id)
   if (req.body.date) {
-  let date = new Date(req.body.date)
-    date = date.toUTCString()
-    let newExercise = new Exercise({description: req.body.description, duration: req.body.duration, date: date, user: req.params._id})
-    console.log(newExercise)
-    newExercise.save()
-    console.log(newExercise)
-    res.json(newExercise)
-  }
+    let date = new Date(req.body.date)
+      date = date.toUTCString()
+      let newExercise = new Exercise({
+        description: req.body.description, 
+        duration: req.body.duration, 
+        date: date 
+        })
+      newExercise.save()
+      User.findOneAndUpdate(
+        {_id: req.params._id}, 
+        {"$push": {exercises: newExercise}}, 
+        {new: true}
+      ).select('-__v').then((r) => {
+        res.json(r)})
+    }
   else {
-    let newExercise = new Exercise({description: req.body.description, duration: req.body.duration, date: new Date().toUTCString(), user: req.params._id})
-    console.log(newExercise)
-
-newExercise.save()
-console.log(newExercise)
-
+    let newExercise = new Exercise({
+      description: req.body.description, 
+      duration: req.body.duration, 
+      date: new Date().toUTCString()
+    })
+    newExercise.save()
+    User.findOneAndUpdate(
+      {_id: req.params._id}, 
+      {"$push": {exercises: newExercise}}, 
+      {new: true}
+    ).select('-__v').then((r) => {
+      res.json(r)})
   }
-})
-app.get('/api/users/:_id/exercises', (req, res) => {
-  async function userFind() {
-  let foundUser = await User.find({_id: req.params._id}).populate('exercises').exec()
-  console.log(foundUser)
-
-    res.json(foundUser)
-}
-userFind()
-
 })
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
