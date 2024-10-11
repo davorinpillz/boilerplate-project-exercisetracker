@@ -44,7 +44,7 @@ const logSchema = new Schema({
 const Log = mongoose.model("Log", logSchema)
 app.post('/api/users', function(req,res) {
   let newUser = new User({username: req.body.username})
-   newUser.save()
+  newUser.save()
   res.json(newUser)
 })
 app.get('/api/users',  function(req,res) {
@@ -55,37 +55,41 @@ app.get('/api/users',  function(req,res) {
 app.post('/api/users/:_id/exercises', function(req,res) {
   if (req.body.date) {
     let date = new Date(req.body.date)
-      date = date.toUTCString()
-      let newExercise = new Exercise({
-        description: req.body.description, 
-        duration: req.body.duration, 
-        date: date,
-        user: req.params._id
-        })
-      newExercise.save()
-      async function populateUser() {
-        await User.find({_id: req.params._id}).populate("exercises").then((r) => {
-          res.json(r)
-        })
-        }
-      populateUser()
-    }
-  else {
+    date = date.toUTCString()
     let newExercise = new Exercise({
-      description: req.body.description, 
-      duration: req.body.duration, 
-      date: new Date().toUTCString(),
+      description: req.body.description,
+      duration: req.body.duration,
+      date: date,
       user: req.params._id
     })
     newExercise.save()
-    console.log(newExercise)
-    async function populateUser() {
-      await User.find({_id: req.params._id}).populate("exercises").exec().then((r) => {
-        res.json(r)
-        console.log(r)
-
+    function updateUser() {
+      User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).then()
+    }     function populateUser() {
+       User.find({_id: req.params._id}).populate("exercises").exec().then((result) => {
+        res.json(result)
       })
-      }
+    }
+    updateUser()
+    populateUser()
+  }
+  else {
+    let newExercise = new Exercise({
+      description: req.body.description,
+      duration: req.body.duration,
+      date: new Date().toUTCString(),
+          user: req.params._id
+    })
+    newExercise.save()
+    function updateUser() {
+       User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).then()
+    }
+    function populateUser() {
+        User.find({_id: req.params._id}).populate("exercises").then((result) => {
+          res.json(result)
+        })
+    }
+    updateUser()
     populateUser()
   }
 })
