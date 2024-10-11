@@ -81,21 +81,17 @@ app.post('/api/users/:_id/exercises', function(req,res) {
           user: req.params._id
     })
     newExercise.save()
-    function updateUser() {
-       User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).then()
-    }
-    function populateUser() {
-        User.find({_id: req.params._id}).populate("exercises").then((result) => {
-          res.json(result)
-        })
-    }
-    updateUser()
-    populateUser()
+    
+       const addExercise = User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).exec()
+       
+
+
+       
+ 
+   
+    
   }
 })
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
-
-
-
