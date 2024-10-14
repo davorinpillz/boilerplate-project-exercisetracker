@@ -26,11 +26,14 @@ const exerciseSchema = new Schema({
   description: String,
   duration: Number,
   date: String,
+  compareDate: Date,
   user: {
     type: Schema.Types.ObjectId,
     ref: "User"
   }
-})
+},
+{timestamps: true}
+)
 const Exercise = mongoose.model("Exercise", exerciseSchema)
 const logSchema = new Schema({
   username: String,
@@ -42,6 +45,259 @@ const logSchema = new Schema({
   }]
 })
 const Log = mongoose.model("Log", logSchema)
+
+app.get('/api/users/:_id/logs', async (req,res) => {
+  let fromDate = new Date(req.query.from).getTime()
+  console.log(fromDate)
+  let toDate = new Date(req.query.to).getTime()
+  console.log(toDate)
+
+  //if from only
+  if (req.query.from && !req.query.to && !req.query.limit) {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$gte: fromDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("has from")
+  }
+  //if to only
+  else if (req.query.to && !req.query.from && !req.query.limit) {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$lte: toDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("has to")
+  }
+  //if limit only
+  else if (req.query.limit && !req.query.to && !req.query.from) {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      .limit(req.query.limit)
+
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("limit")
+
+  }
+  //if from and to
+  else if (req.query.from && req.query.to && !req.query.limit)  {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$gte: fromDate}})
+      .find({compareDate: {$lte: toDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("from and to")
+
+  }
+  //if from and limit
+  else if (req.query.from && !req.query.to && req.query.limit) {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$gte: fromDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      .limit(req.query.limit)
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("has from and limit")
+
+  }
+  //if to and limit
+  else if (!req.query.from && req.query.to && req.query.limit){
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$lte: toDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      .limit(req.query.limit)
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("has to and limit")
+
+  }
+  else if (req.query.from && req.query.to && req.query.limit){
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .find({compareDate: {$gte: fromDate}})
+      .find({compareDate: {$lte: toDate}})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+      .limit(req.query.limit)
+      console.log(exercises.length)
+      console.log(user)
+      console.log(req.params.from)
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("has all 3")
+  }
+  else {
+    try {
+      let user = await User.findById(req.params._id)
+      let exercises = await Exercise.find({user: user._id})
+      .select("-_id")
+      .select("-user")
+      .select("-__v")
+
+      if(!user) {
+        console.log("lkdajlkaj")
+      }
+      else {
+        res.json({
+          username: user.username,
+          count: exercises.length,
+          _id: user._id,
+          log: exercises
+        })
+      }
+    }
+    catch(e) {
+      console.log(e)
+    }
+    console.log("lksdjalksjd")
+  }
+})
 app.post('/api/users', function(req,res) {
   let newUser = new User({username: req.body.username})
   newUser.save()
@@ -52,45 +308,65 @@ app.get('/api/users',  function(req,res) {
     res.send(r)
   })
 })
-app.post('/api/users/:_id/exercises', function(req,res) {
+app.post('/api/users/:_id/exercises', async function(req,res) {
   if (req.body.date) {
     let date = new Date(req.body.date)
-    date = date.toUTCString()
+    date = date.toDateString()
     let newExercise = new Exercise({
       description: req.body.description,
       duration: req.body.duration,
       date: date,
-      user: req.params._id
+      user: req.params._id,
+      compareDate: new Date(date).getTime()
     })
     newExercise.save()
-    function updateUser() {
-      User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).then()
-    }     function populateUser() {
-       User.find({_id: req.params._id}).populate("exercises").exec().then((result) => {
-        res.json(result)
-      })
+    try {let user = await User.findById(req.params._id)
+      console.log(user._id)
+      if (!user) {
+        console.log("sldkjfaslkdjf")}
+        else {
+          res.json({
+            _id: req.params._id,
+            username: user.username,
+            description: newExercise.description,
+            duration: newExercise.duration,
+            date: new Date (newExercise.date).toDateString()
+          })
+        }
     }
-    updateUser()
-    populateUser()
+    catch(e) {
+      console.log(e)
+    }
   }
   else {
     let newExercise = new Exercise({
       description: req.body.description,
       duration: req.body.duration,
-      date: new Date().toUTCString(),
-          user: req.params._id
+      date: new Date().toDateString(),
+        user: req.params._id,
+        compareDate: new Date().getTime()
+
     })
     newExercise.save()
-    
-       const addExercise = User.findOneAndUpdate({_id: req.params._id}, {$push: {exercises: newExercise._id}}).exec()
-       
-
-
-       
- 
-   
-    
+    try {let user = await User.findById(req.params._id)
+      console.log(user._id)
+    if (!user) {
+    console.log("sldkjfaslkdjf")}
+    else {
+      res.json({
+        _id: req.params._id,
+        username: user.username,
+        description: newExercise.description,
+        duration: newExercise.duration,
+        date: newExercise.date
+      })
+    }
+    }
+    catch(e) {
+      console.log(e)
+    }
   }
+
 })
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
